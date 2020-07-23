@@ -1,79 +1,3 @@
-/* 
-Board for pixel color game
-*/
-
-var Board = function Board() {
-  this.rows = 0;
-  this.columns = 0;
-
-  this.cellsShownCount = 0;
-  this.cellsShown = null;
-};
-
-Board.prototype.remainingCells = function () {
-  return this.rows * this.columns - this.cellsShownCount;
-};
-
-Board.prototype.showCell = function (x, y, show) {
-  this.cellsShown[x * this.columns + y] = show;
-  this.cellsShownCount += show ? 1 : -1;
-};
-
-Board.prototype.reset = function () {
-  this.cellsShownCount = 0;
-  this.cellsShown = new Array(this.rows * this.columns);
-};
-
-Board.prototype.isShowCell = function (x, y) {
-  return this.cellsShown[x * this.columns + y] || false;
-};
-
-function getRndInteger(min, max) {
-  return Math.floor(Math.random() * (max + 1 - min)) + min;
-}
-
-Board.prototype.showRandomCell = function () {
-  const randomIndex = getRndInteger(
-    0,
-    this.rows * this.columns - 1 - this.cellsShownCount
-  );
-
-  let num = 0;
-  let i = 0;
-  let j = 0;
-  let position = null;
-
-  for (i = 0; i < this.rows; i++) {
-    if (position != null) break;
-
-    for (j = 0; j < this.columns; j++) {
-      if (this.isShowCell(i, j)) {
-        continue;
-      }
-
-      if (num == randomIndex) {
-        position = { x: i, y: j };
-        break;
-      }
-      num++;
-    }
-  }
-
-  console.log(position);
-
-  if (position === null) {
-    return null;
-  }
-
-  this.showCell(position.x, position.y, true);
-  return position;
-};
-
-Board.prototype.init = function (rows, columns) {
-  this.rows = rows;
-  this.columns = columns;
-};
-
 function repeatXI(callback, interval, repeats, immediate) {
   var timer, trigger;
   trigger = function () {
@@ -90,14 +14,16 @@ function repeatXI(callback, interval, repeats, immediate) {
     trigger();
   }
 }
+const BOARD_MAX_WIDTH = 600;
+const BOARD_MAX_HEIGHT = 800;
 
 var board = new Board();
 board.init(10, 10);
 
 function loadBoard() {
   var canvas = this.document.createElement("canvas");
-  canvas.width = 640;
-  canvas.height = 360;
+  canvas.width = BOARD_MAX_WIDTH;
+  canvas.height = BOARD_MAX_HEIGHT;
 
   board.reset();
 
@@ -106,15 +32,15 @@ function loadBoard() {
 
   var ctx = canvas.getContext("2d");
 
-  var cw = canvas.width;
-  var ch = canvas.height;
-
   var img = new Image();
   img.onload = start;
   img.src =
     "https://www.joblo.com/assets/images/joblo/posters/2020/03/coffeekareempost1.jpg";
 
   function start() {
+    //board.imageSizeMultiplier = canvas.width / img.width;
+    // canvas.height = img.height;
+
     canvas.width = img.width;
     canvas.height = img.height;
 
@@ -124,7 +50,7 @@ function loadBoard() {
     ctx.stroke();
 
     document.getElementById("clear").onclick = function () {
-      ctx.clearRect(0, 0, cw, ch);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.beginPath();
       ctx.strokeStyle = "rgba(0,0,0,0.7)";
       ctx.rect(0, 0, canvas.width, canvas.height);
@@ -171,7 +97,7 @@ function loadBoard() {
     };
 
     document.getElementById("full").onclick = function () {
-      ctx.clearRect(0, 0, cw, ch);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
     };
   }
