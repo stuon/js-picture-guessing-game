@@ -14,11 +14,15 @@ function repeatXI(callback, interval, repeats, immediate) {
     trigger();
   }
 }
+
+const ROWS = 10;
+const COLS = 10;
+
 const BOARD_MAX_WIDTH = 600;
 const BOARD_MAX_HEIGHT = 800;
 
 var board = new Board();
-board.init(10, 10);
+board.init(ROWS, COLS);
 
 function loadBoard() {
   var canvas = this.document.createElement("canvas");
@@ -38,11 +42,11 @@ function loadBoard() {
     "https://www.joblo.com/assets/images/joblo/posters/2020/03/coffeekareempost1.jpg";
 
   function start() {
-    //board.imageSizeMultiplier = canvas.width / img.width;
-    // canvas.height = img.height;
-
     canvas.width = img.width;
     canvas.height = img.height;
+
+    const columnSize = Math.ceil(canvas.width / 10.0);
+    const rowSize = Math.ceil(canvas.height / 10.0);
 
     ctx.beginPath();
     ctx.strokeStyle = "rgba(0,0,0,0.7)";
@@ -64,21 +68,30 @@ function loadBoard() {
 
       if (position === null) return;
 
+      const posX = position.x * columnSize;
+      const posY = position.y * rowSize;
+
+      // if last row/column then use the remainder width
+      const widthAdj =
+        position.x + 1 === COLS ? canvas.width - posX : columnSize;
+      const heightAdj =
+        position.y + 1 === ROWS ? canvas.height - posY : rowSize;
+
       ctx.drawImage(
         img,
-        position.x * 30,
-        position.y * 30,
-        30,
-        30,
-        position.x * 30,
-        position.y * 30,
-        30,
-        30
+        posX,
+        posY,
+        widthAdj,
+        heightAdj,
+        posX,
+        posY,
+        widthAdj,
+        heightAdj
       );
 
       ctx.beginPath();
       ctx.strokeStyle = "rgba(0,0,0,0.7)";
-      ctx.rect(position.x * 30, position.y * 30, 30, 30);
+      ctx.rect(posX, posY, widthAdj, heightAdj);
       ctx.stroke();
     }
 
@@ -99,6 +112,11 @@ function loadBoard() {
     document.getElementById("full").onclick = function () {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
+
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(0,0,0,0.7)";
+      ctx.rect(0, 0, canvas.width, canvas.height);
+      ctx.stroke();
     };
   }
 }
