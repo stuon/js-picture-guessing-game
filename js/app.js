@@ -89,10 +89,48 @@ function loadBoard() {
         heightAdj
       );
 
+      if (!position.topSet) {
+        ctx.beginPath();
+        ctx.lineWidth = 1;
+        ctx.moveTo(posX, posY);
+        ctx.lineTo(posX + widthAdj, posY);
+        ctx.strokeStyle = "rgba(0,0,0,0.7)";
+        ctx.stroke();
+      }
+
+      if (!position.leftSet) {
+        ctx.beginPath();
+        ctx.lineWidth = 1;
+        ctx.moveTo(posX, posY);
+        ctx.lineTo(posX, posY + heightAdj);
+        ctx.strokeStyle = "rgba(0,0,0,0.7)";
+        ctx.stroke();
+      }
+
+      if (!position.rightSet) {
+        ctx.beginPath();
+        ctx.lineWidth = 1;
+        ctx.moveTo(posX + widthAdj, posY);
+        ctx.lineTo(posX + widthAdj, posY + heightAdj);
+        ctx.strokeStyle = "rgba(0,0,0,0.7)";
+        ctx.stroke();
+      }
+
+      if (!position.bottomSet) {
+        ctx.beginPath();
+        ctx.lineWidth = 1;
+        ctx.moveTo(posX, posY + heightAdj);
+        ctx.lineTo(posX + widthAdj, posY + heightAdj);
+        ctx.strokeStyle = "rgba(0,0,0,0.7)";
+        ctx.stroke();
+      }
+
+      /*
       ctx.beginPath();
       ctx.strokeStyle = "rgba(0,0,0,0.7)";
       ctx.rect(posX, posY, widthAdj, heightAdj);
       ctx.stroke();
+      */
     }
 
     document.getElementById("autorun").onclick = function () {
