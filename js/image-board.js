@@ -17,6 +17,9 @@ var imageBoard = (function Board() {
     remainingCells: function () {
       return this.rows * this.columns - this.cellsShownCount;
     },
+    totalCells: function () {
+      return this.rows * this.columns;
+    },
     showCell: function (x, y, show) {
       this.cellsShown[y * this.rows + x] = show;
       this.cellsShownCount += show ? 1 : -1;

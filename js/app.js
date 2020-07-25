@@ -21,12 +21,14 @@ var app = (function (board) {
   const BOARD_MAX_WIDTH = 800;
   const BOARD_MAX_HEIGHT = 640;
 
-  var canvas = null;
-  var img = null;
-  var ctx = null;
-  var columnSize = 0;
-  var rowSize = 0;
-  var imageRatio = 1.0;
+  let canvas = null;
+  let img = null;
+  let ctx = null;
+  let columnSize = 0;
+  let rowSize = 0;
+  let imageRatio = 1.0;
+  let progressElement;
+  let progressWrapperElement;
 
   var getRandomImage = function () {
     // Make this dynamic and random
@@ -56,6 +58,23 @@ var app = (function (board) {
         context.fillText(message, 10, 25);*/
   };
 
+  var newGame = function () {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.beginPath();
+    ctx.strokeStyle = "rgba(0,0,0,0.7)";
+    ctx.rect(0, 0, canvas.width, canvas.height);
+    ctx.stroke();
+
+    board.reset();
+    img.src = getRandomImage(); // get a new image
+
+    progressElement.innerText =
+      board.remainingCells() == 0
+        ? ""
+        : board.remainingCells() + " / " + board.totalCells();
+    progressElement.style = "width: " + board.remainingCells() + "%;";
+  };
+
   var setupEventListeners = function () {
     canvas.addEventListener(
       "mousemove",
@@ -68,14 +87,8 @@ var app = (function (board) {
     );
 
     document.getElementById("clear").onclick = function () {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.beginPath();
-      ctx.strokeStyle = "rgba(0,0,0,0.7)";
-      ctx.rect(0, 0, canvas.width, canvas.height);
-      ctx.stroke();
-
-      board.reset();
-      img.src = getRandomImage(); // get a new image
+      var r = confirm("Are you sure you want to start a new game?");
+      if (r == true) newGame();
     };
 
     document.getElementById("autorun").onclick = function () {
@@ -113,6 +126,13 @@ var app = (function (board) {
     columnSize = Math.ceil(canvas.width / COLS);
     rowSize = Math.ceil(canvas.height / ROWS);
 
+    progressWrapperElement.setAttribute(
+      "style",
+      "width:" + canvas.width + "px"
+    );
+    progressElement.innerText =
+      board.remainingCells() + " / " + board.totalCells();
+
     ctx.beginPath();
     ctx.strokeStyle = "rgba(0,0,0,0.7)";
     ctx.rect(0, 0, canvas.width, canvas.height);
@@ -132,11 +152,14 @@ var app = (function (board) {
 
     // if last row/column then use the remainder width
     const widthAdj = position.x + 1 === COLS ? canvas.width - posX : columnSize;
-
     const heightAdj = position.y + 1 === ROWS ? canvas.height - posY : rowSize;
 
     board.showCell(position.x, position.y, true);
-
+    progressElement.innerText =
+      board.remainingCells() == 0
+        ? ""
+        : board.remainingCells() + " / " + board.totalCells();
+    progressElement.style = "width: " + board.remainingCells() + "%;";
     ctx.drawImage(
       img,
       posX / imageRatio,
@@ -200,6 +223,9 @@ var app = (function (board) {
 
       ctx = canvas.getContext("2d");
       setupEventListeners();
+
+      progressElement = document.querySelector("#progress");
+      progressWrapperElement = document.querySelector("#progress-wrapper");
 
       img = new Image();
       img.onload = start;
