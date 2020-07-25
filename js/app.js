@@ -15,7 +15,7 @@ function repeatXI(callback, interval, repeats, immediate) {
   }
 }
 
-var app = (function () {
+var app = (function (board) {
   const ROWS = 10;
   const COLS = 10;
   const BOARD_MAX_WIDTH = 600;
@@ -188,9 +188,9 @@ var app = (function () {
       img = new Image();
       img.onload = start;
       img.src =
-        "https://www.joblo.com/assets/images/joblo/posters/2020/03/coffeekareempost1.jpg";
+        "https://lifeminibites.com/wp-content/uploads/2020/07/pursuit_of_happyness_intro_b.png";
     },
   };
-})();
+})(imageBoard);
 
 app.init();
