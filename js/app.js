@@ -18,14 +18,26 @@ function repeatXI(callback, interval, repeats, immediate) {
 var app = (function (board) {
   const ROWS = 10;
   const COLS = 10;
-  const BOARD_MAX_WIDTH = 600;
-  const BOARD_MAX_HEIGHT = 800;
+  const BOARD_MAX_WIDTH = 800;
+  const BOARD_MAX_HEIGHT = 640;
 
   var canvas = null;
   var img = null;
   var ctx = null;
   var columnSize = 0;
   var rowSize = 0;
+  var imageRatio = 1.0;
+
+  var getRandomImage = function () {
+    // Make this dynamic and random
+    var image = [
+      "https://lifeminibites.com/wp-content/uploads/2020/07/pursuit_of_happyness_intro_b.png",
+      "https://lifeminibites.com/wp-content/uploads/2020/06/martian-about-720x404-1.png",
+    ];
+
+    var index = Math.floor(Math.random() * image.length);
+    return image[index];
+  };
 
   var getMousePos = function (canvas, evt) {
     var rect = canvas.getBoundingClientRect();
@@ -63,6 +75,7 @@ var app = (function (board) {
       ctx.stroke();
 
       board.reset();
+      img.src = getRandomImage(); // get a new image
     };
 
     document.getElementById("autorun").onclick = function () {
@@ -81,7 +94,7 @@ var app = (function (board) {
 
     document.getElementById("full").onclick = function () {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
       ctx.beginPath();
       ctx.strokeStyle = "rgba(0,0,0,0.7)";
@@ -91,8 +104,11 @@ var app = (function (board) {
   };
 
   var start = function () {
-    canvas.width = img.width;
-    canvas.height = img.height;
+    imageRatio =
+      img.width > BOARD_MAX_WIDTH ? BOARD_MAX_WIDTH / img.width : 1.0;
+
+    canvas.width = img.width * imageRatio;
+    canvas.height = img.height * imageRatio;
 
     columnSize = Math.ceil(canvas.width / COLS);
     rowSize = Math.ceil(canvas.height / ROWS);
@@ -123,10 +139,10 @@ var app = (function (board) {
 
     ctx.drawImage(
       img,
-      posX,
-      posY,
-      widthAdj,
-      heightAdj,
+      posX / imageRatio,
+      posY / imageRatio,
+      widthAdj / imageRatio,
+      heightAdj / imageRatio,
       posX,
       posY,
       widthAdj,
@@ -187,8 +203,7 @@ var app = (function (board) {
 
       img = new Image();
       img.onload = start;
-      img.src =
-        "https://lifeminibites.com/wp-content/uploads/2020/07/pursuit_of_happyness_intro_b.png";
+      img.src = getRandomImage();
     },
   };
 })(imageBoard);
