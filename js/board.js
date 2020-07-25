@@ -39,7 +39,18 @@ function getRndInteger(min, max) {
   return Math.floor(Math.random() * (max + 1 - min)) + min;
 }
 
-Board.prototype.showRandomCell = function () {
+Board.prototype.getCell = function (x, y) {
+  return {
+    x: x,
+    y: y,
+    topSet: this.isShowCell(x, y - 1),
+    leftSet: this.isShowCell(x - 1, y),
+    rightSet: this.isShowCell(x + 1, y),
+    bottomSet: this.isShowCell(x, y + 1),
+  };
+};
+
+Board.prototype.getRandomAvailableCell = function () {
   const randomIndex = getRndInteger(
     0,
     this.rows * this.columns - 1 - this.cellsShownCount
@@ -48,37 +59,19 @@ Board.prototype.showRandomCell = function () {
   let num = 0;
   let x = 0;
   let y = 0;
-  let position = null;
 
   for (y = 0; y < this.rows; y++) {
-    if (position != null) break;
-
     for (x = 0; x < this.columns; x++) {
       if (this.isShowCell(x, y)) {
         continue;
       }
 
       if (num == randomIndex) {
-        position = {
-          x: x,
-          y: y,
-          topSet: this.isShowCell(x, y - 1),
-          leftSet: this.isShowCell(x - 1, y),
-          rightSet: this.isShowCell(x + 1, y),
-          bottomSet: this.isShowCell(x, y + 1),
-        };
-        break;
+        return this.getCell(x, y);
       }
       num++;
     }
   }
 
-  console.log(position);
-
-  if (position === null) {
-    return null;
-  }
-
-  this.showCell(position.x, position.y, true);
-  return position;
+  return null;
 };

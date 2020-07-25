@@ -45,8 +45,8 @@ function loadBoard() {
     canvas.width = img.width;
     canvas.height = img.height;
 
-    const columnSize = Math.ceil(canvas.width / 10.0);
-    const rowSize = Math.ceil(canvas.height / 10.0);
+    const columnSize = Math.ceil(canvas.width / COLS);
+    const rowSize = Math.ceil(canvas.height / ROWS);
 
     ctx.beginPath();
     ctx.strokeStyle = "rgba(0,0,0,0.7)";
@@ -63,9 +63,39 @@ function loadBoard() {
       board.reset();
     };
 
-    function clickShowCell() {
-      var position = board.showRandomCell();
+    function getMousePos(canvas, evt) {
+      var rect = canvas.getBoundingClientRect();
+      return {
+        x: evt.clientX - rect.left,
+        y: evt.clientY - rect.top,
+      };
+    }
 
+    function writeMessage(canvas, message) {
+      //console.log(message);
+      /*  var context = canvas.getContext("2d");
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.font = "18pt Calibri";
+      context.fillStyle = "black";
+      context.fillText(message, 10, 25);*/
+    }
+
+    canvas.addEventListener(
+      "mousemove",
+      function (evt) {
+        var mousePos = getMousePos(canvas, evt);
+        var message = "Mouse position: " + mousePos.x + "," + mousePos.y;
+        writeMessage(canvas, message);
+      },
+      false
+    );
+
+    function clickShowCell() {
+      var position = board.getRandomAvailableCell();
+      showShow(position);
+    }
+
+    function showShow(position) {
       if (position === null) return;
 
       const posX = position.x * columnSize;
@@ -74,8 +104,11 @@ function loadBoard() {
       // if last row/column then use the remainder width
       const widthAdj =
         position.x + 1 === COLS ? canvas.width - posX : columnSize;
+
       const heightAdj =
         position.y + 1 === ROWS ? canvas.height - posY : rowSize;
+
+      board.showCell(position.x, position.y, true);
 
       ctx.drawImage(
         img,
@@ -91,7 +124,7 @@ function loadBoard() {
 
       if (!position.topSet) {
         ctx.beginPath();
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 0.5;
         ctx.moveTo(posX, posY);
         ctx.lineTo(posX + widthAdj, posY);
         ctx.strokeStyle = "rgba(0,0,0,0.7)";
@@ -100,7 +133,7 @@ function loadBoard() {
 
       if (!position.leftSet) {
         ctx.beginPath();
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 0.5;
         ctx.moveTo(posX, posY);
         ctx.lineTo(posX, posY + heightAdj);
         ctx.strokeStyle = "rgba(0,0,0,0.7)";
@@ -109,7 +142,7 @@ function loadBoard() {
 
       if (!position.rightSet) {
         ctx.beginPath();
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 0.5;
         ctx.moveTo(posX + widthAdj, posY);
         ctx.lineTo(posX + widthAdj, posY + heightAdj);
         ctx.strokeStyle = "rgba(0,0,0,0.7)";
@@ -118,19 +151,12 @@ function loadBoard() {
 
       if (!position.bottomSet) {
         ctx.beginPath();
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 0.5;
         ctx.moveTo(posX, posY + heightAdj);
         ctx.lineTo(posX + widthAdj, posY + heightAdj);
         ctx.strokeStyle = "rgba(0,0,0,0.7)";
         ctx.stroke();
       }
-
-      /*
-      ctx.beginPath();
-      ctx.strokeStyle = "rgba(0,0,0,0.7)";
-      ctx.rect(posX, posY, widthAdj, heightAdj);
-      ctx.stroke();
-      */
     }
 
     document.getElementById("autorun").onclick = function () {
