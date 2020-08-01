@@ -1,8 +1,8 @@
 body {
 }
 
-#canvas {
-  border: 1px solid red;
+#game {
+  width: 100%;
 }
 
 .vertical-center {
@@ -13,10 +13,6 @@ body {
   align-items: center;
 }
 
-.progress {
-  margin: 10px;
-}
-
-canvas {
-  margin: 10px;
+.row {
+  padding-top: 10px;
 }

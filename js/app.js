@@ -1,5 +1,5 @@
 function repeatXI(callback, interval, repeats, immediate) {
-  var timer, trigger;
+  let timer, trigger;
   trigger = function () {
     callback();
     --repeats || clearInterval(timer);
@@ -18,38 +18,45 @@ function repeatXI(callback, interval, repeats, immediate) {
 var app = (function (board) {
   const ROWS = 10;
   const COLS = 10;
-  const BOARD_MAX_WIDTH = 800;
-  const BOARD_MAX_HEIGHT = 640;
 
-  let canvas = null;
-  let img = null;
-  let ctx = null;
-  let columnSize = 0;
-  let rowSize = 0;
-  let imageRatio = 1.0;
+  let canvas;
+  let imageElement;
+  let image;
+  let ctx;
+  let columnSize;
+  let rowSize;
+  let imageRatio;
   let progressElement;
   let progressWrapperElement;
 
-  var getRandomImage = function () {
-    // Make this dynamic and random
-    var image = [
-      "https://lifeminibites.com/wp-content/uploads/2020/07/pursuit_of_happyness_intro_b.png",
-      "https://lifeminibites.com/wp-content/uploads/2020/06/martian-about-720x404-1.png",
+  let getRandomImage = function () {
+    // Replace this to return a random image from some remote call
+    const images = [
+      {
+        title: ["The Pursuit of Happyness", "Pursuit of Happyness"],
+        url:
+          "https://lifeminibites.com/wp-content/uploads/2020/07/pursuit_of_happyness_intro_b.png",
+      },
+      {
+        title: ["The Martian"],
+        url:
+          "https://lifeminibites.com/wp-content/uploads/2020/06/martian-about-720x404-1.png",
+      },
     ];
 
-    var index = Math.floor(Math.random() * image.length);
-    return image[index];
+    let randomIndex = Math.floor(Math.random() * images.length);
+    return images[randomIndex];
   };
 
-  var getMousePos = function (canvas, evt) {
-    var rect = canvas.getBoundingClientRect();
+  let getMousePos = function (canvas, evt) {
+    let rect = canvas.getBoundingClientRect();
     return {
       x: evt.clientX - rect.left,
       y: evt.clientY - rect.top,
     };
   };
 
-  var writeMessage = function (canvas, message) {
+  let writeMessage = function (canvas, message) {
     //console.log(message);
     /*  var context = canvas.getContext("2d");
         context.clearRect(0, 0, canvas.width, canvas.height);
@@ -58,7 +65,7 @@ var app = (function (board) {
         context.fillText(message, 10, 25);*/
   };
 
-  var newGame = function () {
+  let newGame = function () {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.beginPath();
     ctx.strokeStyle = "rgba(0,0,0,0.7)";
@@ -66,7 +73,8 @@ var app = (function (board) {
     ctx.stroke();
 
     board.reset();
-    img.src = getRandomImage(); // get a new image
+    image = getRandomImage(); // get a new image
+    imageElement.src = image.url;
 
     progressElement.innerText =
       board.remainingCells() == 0
@@ -75,7 +83,7 @@ var app = (function (board) {
     progressElement.style = "width: " + board.remainingCells() + "%;";
   };
 
-  var setupEventListeners = function () {
+  let setupEventListeners = function () {
     canvas.addEventListener(
       "mousemove",
       function (evt) {
@@ -87,7 +95,7 @@ var app = (function (board) {
     );
 
     document.getElementById("clear").onclick = function () {
-      var r = confirm("Are you sure you want to start a new game?");
+      let r = confirm("Are you sure you want to start a new game?");
       if (r == true) newGame();
     };
 
@@ -107,7 +115,7 @@ var app = (function (board) {
 
     document.getElementById("full").onclick = function () {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      ctx.drawImage(imageElement, 0, 0, canvas.width, canvas.height);
 
       ctx.beginPath();
       ctx.strokeStyle = "rgba(0,0,0,0.7)";
@@ -116,12 +124,10 @@ var app = (function (board) {
     };
   };
 
-  var start = function () {
-    imageRatio =
-      img.width > BOARD_MAX_WIDTH ? BOARD_MAX_WIDTH / img.width : 1.0;
+  let start = function () {
+    imageRatio = canvas.width / imageElement.width;
 
-    canvas.width = img.width * imageRatio;
-    canvas.height = img.height * imageRatio;
+    canvas.height = imageElement.height * imageRatio;
 
     columnSize = Math.ceil(canvas.width / COLS);
     rowSize = Math.ceil(canvas.height / ROWS);
@@ -161,11 +167,11 @@ var app = (function (board) {
         : board.remainingCells() + " / " + board.totalCells();
     progressElement.style = "width: " + board.remainingCells() + "%;";
     ctx.drawImage(
-      img,
-      posX / imageRatio,
-      posY / imageRatio,
-      widthAdj / imageRatio,
-      heightAdj / imageRatio,
+      imageElement,
+      posX * imageRatio,
+      posY * imageRatio,
+      widthAdj * imageRatio,
+      heightAdj * imageRatio,
       posX,
       posY,
       widthAdj,
@@ -214,22 +220,17 @@ var app = (function (board) {
       board.init(ROWS, COLS);
       board.reset();
 
-      canvas = document.createElement("canvas");
-      canvas.width = BOARD_MAX_WIDTH;
-      canvas.height = BOARD_MAX_HEIGHT;
-
-      var game = document.querySelector("#game");
-      game.insertBefore(canvas, game.childNodes[0]);
-
+      canvas = document.querySelector("#game");
       ctx = canvas.getContext("2d");
       setupEventListeners();
 
       progressElement = document.querySelector("#progress");
       progressWrapperElement = document.querySelector("#progress-wrapper");
 
-      img = new Image();
-      img.onload = start;
-      img.src = getRandomImage();
+      imageElement = new Image();
+      imageElement.onload = start;
+
+      newGame();
     },
   };
 })(imageBoard);

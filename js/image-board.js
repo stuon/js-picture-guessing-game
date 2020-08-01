@@ -2,7 +2,7 @@
 Board for pixel color game
 */
 
-var imageBoard = (function Board() {
+let imageBoard = (function Board() {
   this.columns = 0; // x position
   this.rows = 0; // y position
   this.imageSizeMultiplier = 0;
