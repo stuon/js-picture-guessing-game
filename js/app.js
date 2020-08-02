@@ -23,9 +23,18 @@ var app = (function (board) {
   let imageElement;
   let image;
   let ctx;
+
+  // cell column size
   let columnSize;
   let rowSize;
+
+  // image column size
+  let imageColumnSize;
+  let imageRowSize;
+
+  // image ratio conversion to match canvas size
   let imageRatio;
+
   let progressElement;
   let progressWrapperElement;
 
@@ -125,12 +134,22 @@ var app = (function (board) {
   };
 
   let start = function () {
+    canvas.height = canvas.getBoundingClientRect().height;
+    canvas.width = canvas.getBoundingClientRect().width;
+
+    // make canvas same ratio as
+    canvas.height = canvas.width * (imageElement.height / imageElement.width);
     imageRatio = canvas.width / imageElement.width;
 
-    canvas.height = imageElement.height * imageRatio;
+    console.log(`canvas: ${canvas.width}, ${canvas.height}`);
+    console.log(`image: ${imageElement.width}, ${imageElement.height}`);
+    console.log(`ratio: ${imageRatio}`);
 
     columnSize = Math.ceil(canvas.width / COLS);
     rowSize = Math.ceil(canvas.height / ROWS);
+
+    imageColumnSize = Math.ceil(imageElement.width / COLS);
+    imageRowSize = Math.ceil(imageElement.height / COLS);
 
     progressWrapperElement.setAttribute(
       "style",
@@ -150,15 +169,47 @@ var app = (function (board) {
     showCell(position);
   };
 
+  function getCellBlock(x, y, colSize, rowSize, maxWidth, maxHeight) {
+    const posX = x * colSize;
+    const posY = y * rowSize;
+
+    // if last row/column then use the remainder width
+    const width = x + 1 === COLS ? maxWidth - posX : colSize;
+    const height = y + 1 === ROWS ? maxHeight - posY : rowSize;
+
+    const posX2 = posX + width;
+    const posY2 = posY + height;
+
+    return {
+      posX,
+      posY,
+      width,
+      height,
+      posX2,
+      posY2,
+    };
+  }
+
   var showCell = function (position) {
     if (position === null) return;
 
-    const posX = position.x * columnSize;
-    const posY = position.y * rowSize;
+    const cellBlock = getCellBlock(
+      position.x,
+      position.y,
+      columnSize,
+      rowSize,
+      canvas.width,
+      canvas.height
+    );
 
-    // if last row/column then use the remainder width
-    const widthAdj = position.x + 1 === COLS ? canvas.width - posX : columnSize;
-    const heightAdj = position.y + 1 === ROWS ? canvas.height - posY : rowSize;
+    const imageBlock = getCellBlock(
+      position.x,
+      position.y,
+      imageColumnSize,
+      imageRowSize,
+      imageElement.width,
+      imageElement.height
+    );
 
     board.showCell(position.x, position.y, true);
     progressElement.innerText =
@@ -166,23 +217,24 @@ var app = (function (board) {
         ? ""
         : board.remainingCells() + " / " + board.totalCells();
     progressElement.style = "width: " + board.remainingCells() + "%;";
+
     ctx.drawImage(
       imageElement,
-      posX * imageRatio,
-      posY * imageRatio,
-      widthAdj * imageRatio,
-      heightAdj * imageRatio,
-      posX,
-      posY,
-      widthAdj,
-      heightAdj
+      imageBlock.posX,
+      imageBlock.posY,
+      imageBlock.width,
+      imageBlock.height,
+      cellBlock.posX,
+      cellBlock.posY,
+      cellBlock.width,
+      cellBlock.height
     );
 
     if (!position.topSet) {
       ctx.beginPath();
       ctx.lineWidth = 0.5;
-      ctx.moveTo(posX, posY);
-      ctx.lineTo(posX + widthAdj, posY);
+      ctx.moveTo(cellBlock.posX, cellBlock.posY);
+      ctx.lineTo(cellBlock.posX2, cellBlock.posY);
       ctx.strokeStyle = "rgba(0,0,0,0.7)";
       ctx.stroke();
     }
@@ -190,8 +242,8 @@ var app = (function (board) {
     if (!position.leftSet) {
       ctx.beginPath();
       ctx.lineWidth = 0.5;
-      ctx.moveTo(posX, posY);
-      ctx.lineTo(posX, posY + heightAdj);
+      ctx.moveTo(cellBlock.posX, cellBlock.posY);
+      ctx.lineTo(cellBlock.posX, cellBlock.posY2);
       ctx.strokeStyle = "rgba(0,0,0,0.7)";
       ctx.stroke();
     }
@@ -199,8 +251,8 @@ var app = (function (board) {
     if (!position.rightSet) {
       ctx.beginPath();
       ctx.lineWidth = 0.5;
-      ctx.moveTo(posX + widthAdj, posY);
-      ctx.lineTo(posX + widthAdj, posY + heightAdj);
+      ctx.moveTo(cellBlock.posX2, cellBlock.posY);
+      ctx.lineTo(cellBlock.posX2, cellBlock.posY2);
       ctx.strokeStyle = "rgba(0,0,0,0.7)";
       ctx.stroke();
     }
@@ -208,8 +260,8 @@ var app = (function (board) {
     if (!position.bottomSet) {
       ctx.beginPath();
       ctx.lineWidth = 0.5;
-      ctx.moveTo(posX, posY + heightAdj);
-      ctx.lineTo(posX + widthAdj, posY + heightAdj);
+      ctx.moveTo(cellBlock.posX, cellBlock.posY2);
+      ctx.lineTo(cellBlock.posX2, cellBlock.posY2);
       ctx.strokeStyle = "rgba(0,0,0,0.7)";
       ctx.stroke();
     }
@@ -228,9 +280,8 @@ var app = (function (board) {
       progressWrapperElement = document.querySelector("#progress-wrapper");
 
       imageElement = new Image();
-      imageElement.onload = start;
-
       newGame();
+      imageElement.onload = start;
     },
   };
 })(imageBoard);
