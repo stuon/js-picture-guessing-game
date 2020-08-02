@@ -1,8 +1,18 @@
-function repeatXI(callback, interval, repeats, immediate) {
+function repeatXI(callback, interval, repeats, immediate, finalCallback) {
   let timer, trigger;
+
   trigger = function () {
-    callback();
-    --repeats || clearInterval(timer);
+    let success = callback();
+
+    if (success) {
+      success = --repeats > 0;
+    }
+
+    if (!success) {
+      clearInterval(timer);
+
+      if (finalCallback) finalCallback();
+    }
   };
 
   interval = interval <= 0 ? 1000 : interval; // default: 1000ms
@@ -23,6 +33,9 @@ var app = (function (board) {
   let imageElement;
   let image;
   let ctx;
+
+  //
+  let gameFinished;
 
   // cell column size
   let columnSize;
@@ -75,6 +88,9 @@ var app = (function (board) {
   };
 
   let newGame = function () {
+    gameState = GAME_STATES.Normal;
+    updateButtonStates();
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.beginPath();
     ctx.strokeStyle = "rgba(0,0,0,0.7)";
@@ -92,6 +108,48 @@ var app = (function (board) {
     progressElement.style = "width: " + board.remainingCells() + "%;";
   };
 
+  var GAME_STATES = {
+    Normal: 1,
+    AutoRun: 2,
+    Finished: 3,
+  };
+
+  let gameState = GAME_STATES.New;
+
+  let autoRun = function () {
+    if (gameState !== GAME_STATES.AutoRun) return false;
+
+    clickShowCell();
+
+    return true;
+  };
+
+  function updateButtonStates() {
+    console.log(`gameState: ${gameState}`);
+
+    if (gameState === GAME_STATES.Normal) {
+      document.getElementById("clear").removeAttribute("disabled");
+      document.getElementById("partial").removeAttribute("disabled");
+      document.getElementById("full").removeAttribute("disabled");
+      document.getElementById("auto-run").removeAttribute("disabled");
+    } else if (gameState === GAME_STATES.AutoRun) {
+      document.getElementById("clear").setAttribute("disabled", "");
+      document.getElementById("partial").setAttribute("disabled", "");
+      document.getElementById("full").setAttribute("disabled", "");
+      document.getElementById("auto-run").removeAttribute("disabled");
+    } else if (gameState === GAME_STATES.Finished) {
+      document.getElementById("clear").removeAttribute("disabled");
+      document.getElementById("partial").setAttribute("disabled", "");
+      document.getElementById("full").setAttribute("disabled", "");
+      document.getElementById("auto-run").setAttribute("disabled", "");
+    }
+  }
+
+  let finishedAutoRun = function () {
+    if (gameState === GAME_STATES.AutoRun) gameState = GAME_STATES.Finished;
+    updateButtonStates();
+  };
+
   let setupEventListeners = function () {
     canvas.addEventListener(
       "mousemove",
@@ -104,21 +162,37 @@ var app = (function (board) {
     );
 
     document.getElementById("clear").onclick = function () {
-      let r = confirm("Are you sure you want to start a new game?");
-      if (r == true) newGame();
+      newGame();
     };
 
-    document.getElementById("autorun").onclick = function () {
+    document.getElementById("auto-run").onclick = function () {
+      if (gameState === GAME_STATES.AutoRun) {
+        gameState = GAME_STATES.Normal;
+        updateButtonStates();
+        return;
+      }
+
       const remainingCount = board.remainingCells();
       if (remainingCount == 0) return;
 
-      repeatXI(clickShowCell, 100 /* wait time */, remainingCount);
+      repeatXI(
+        autoRun,
+        100 /* wait time */,
+        remainingCount,
+        false,
+        finishedAutoRun
+      );
+      gameState = GAME_STATES.AutoRun;
+      updateButtonStates();
     };
 
     document.getElementById("partial").onclick = function () {
       const remainingCount = board.remainingCells();
-      if (remainingCount == 0) return;
-
+      if (remainingCount == 0) {
+        gameState = GAME_STATES.Finished;
+        updateButtonStates();
+        return;
+      }
       clickShowCell();
     };
 
@@ -130,6 +204,9 @@ var app = (function (board) {
       ctx.strokeStyle = "rgba(0,0,0,0.7)";
       ctx.rect(0, 0, canvas.width, canvas.height);
       ctx.stroke();
+
+      gameState = GAME_STATES.Finished;
+      updateButtonStates();
     };
   };
 
